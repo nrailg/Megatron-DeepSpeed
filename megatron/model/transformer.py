@@ -478,13 +478,14 @@ class ParallelAttention(MegatronModule):
             config.num_attention_heads, world_size)
 
         # Per GQA head and per partition values
-        kv_projection_size = config.kv_channels * config.num_key_value_heads
-        self.num_key_value_heads_per_partition = core.utils.divide(
-            config.num_key_value_heads, world_size)
-        self.num_key_value_groups = core.utils.divide(
-            config.num_attention_heads, config.num_key_value_heads)
-        assert self.hidden_size_per_attention_head == core.utils.divide(
-            kv_projection_size, config.num_key_value_heads)
+        if self.use_gqa:
+            kv_projection_size = config.kv_channels * config.num_key_value_heads
+            self.num_key_value_heads_per_partition = core.utils.divide(
+                config.num_key_value_heads, world_size)
+            self.num_key_value_groups = core.utils.divide(
+                config.num_attention_heads, config.num_key_value_heads)
+            assert self.hidden_size_per_attention_head == core.utils.divide(
+                kv_projection_size, config.num_key_value_heads)
 
         # Strided linear layer.
         if attention_type == AttnType.self_attn and not self.use_gqa:
@@ -586,10 +587,6 @@ class ParallelAttention(MegatronModule):
             device=get_accelerator().current_device_name())
 
     def repeat_kv(self, hidden_states, n_rep):
-        """
-        This is the equivalent of torch.repeat_interleave(x, dim=1, repeats=n_rep). The hidden states go from (batch,
-        num_key_value_heads, seqlen, head_dim) to (batch, num_attention_heads, seqlen, head_dim)
-        """
         slen, batch, num_key_value_heads_per_partition, head_dim = hidden_states.shape
         if n_rep == 1:
             return hidden_states

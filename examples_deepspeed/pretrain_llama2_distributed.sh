@@ -1,5 +1,5 @@
 #!/bin/bash
-# This example script is contributed by external user https://github.com/LydiaXiaohongLi
+# This example script is contributed by external user https://github.com/nrailgun
 set -ex
 
 ######################################
@@ -26,7 +26,7 @@ FFN_HIDDEN_SIZE=5504 # e.g. llama-13b: 13824
 NUM_LAYERS=24 # e.g. llama-13b: 40
 NUM_HEADS=16 # e.g. llama-13b: 40
 SEQ_LENGTH=2048
-NUM_KV_HEADS=4 # llama2 uses GQA
+NUM_KV_HEADS=4 # llama2 70B uses GQA
 
 MICRO_BATCH_SIZE=4
 GLOBAL_BATCH_SIZE=32 # e.g. llama: 4M tokens

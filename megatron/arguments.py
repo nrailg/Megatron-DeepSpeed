@@ -422,7 +422,7 @@ def validate_args(args, defaults={}):
     if args.num_key_value_heads != args.num_attention_heads:
         # if GQA
         assert not args.mos, 'GQA currently does not support args.mos'
-        assert not args.kd, 'GQA currently does not args.kd'
+        assert not args.kd, 'GQA currently does not support args.kd'
 
     # Print arguments.
     _print_args("arguments", args)
