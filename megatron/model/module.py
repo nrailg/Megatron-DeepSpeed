@@ -15,7 +15,6 @@ _HALF_TYPES = (torch.HalfTensor, get_accelerator().HalfTensor)
 _BF16_TYPES = (torch.BFloat16Tensor, get_accelerator().BFloat16Tensor)
 
 
-
 def param_is_not_shared(param):
     return not hasattr(param, 'shared') or not param.shared
 
@@ -135,7 +134,7 @@ def fp32_to_float16(val, float16_convertor):
         val_typecheck = val
         if isinstance(val_typecheck, (Parameter, Variable)):
             val_typecheck = val.data
-        if isinstance(val_typecheck, _FLOAT_TYPES):
+        if (val_typecheck.dtype==torch.float16):
             val = float16_convertor(val)
         return val
     return conversion_helper(val, half_conversion)
@@ -147,7 +146,7 @@ def float16_to_fp32(val):
         val_typecheck = val
         if isinstance(val_typecheck, (Parameter, Variable)):
             val_typecheck = val.data
-        if isinstance(val_typecheck, (_BF16_TYPES, _HALF_TYPES)):
+        if (val_typecheck.dtype==torch.bfloat16):
             val = val.float()
         return val
     return conversion_helper(val, float_conversion)
