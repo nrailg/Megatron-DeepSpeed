@@ -1,29 +1,34 @@
 data_path=./alpaca_data.json 
 # dataset link: https://github.com/tatsu-lab/stanford_alpaca/blob/main/alpaca_data.json
 
-hf_llama_path=/data/llama-7b/
+hf_llama_path=/data/nrwu/Llama-2-7b-hf/
 # weights link: https://huggingface.co/huggyllama/llama-7b
 
-mega_ds_llama_path=/data/llama-7b-mega-ds-T2P2D2
+# mega_ds_llama_path=/data/nrwu/llama-7b-mega-ds-T2P2D2
 # dir for mega_ds_weights
+mega_ds_llama_path=/data/nrwu/checkpoint
 
-master_addr=198.10.1.11
+master_addr=30.149.248.34
 # address of master node
-master_port=5566
+master_port=60005
 
-covert_args="deepspeed --hostfile hostfile \
-	--master_addr $master_addr \
-	--master_port $master_port \
-	--num_nodes 2 --num_gpus 8 \
+#covert_args="deepspeed --hostfile hostfile \
+#       --master_addr $master_addr \
+#       --master_port $master_port \
+#       --num_nodes 2 --num_gpus 8 \
+covert_args="deepspeed \
+       --num_nodes 1 --num_gpus 8 \
 	hf2megads_weight_converter.py \
 	--hf-ckpt-num-shards 2 \
 	--origin-hf-ckpt-dir $hf_llama_path \
 	--save $mega_ds_llama_path"
 
-finetune_args="deepspeed --hostfile hostfile \
-	--master_addr $master_addr \
-	--master_port $master_port \
-	--num_nodes 2 --num_gpus 8 \
+#finetune_args="deepspeed --hostfile hostfile \
+#	--master_addr $master_addr \
+#	--master_port $master_port \
+#	--num_nodes 2 --num_gpus 8 \
+finetune_args="deepspeed \
+	--num_nodes 1 --num_gpus 8 \
 	finetune_llama.py \
 	--load $mega_ds_llama_path"
 
