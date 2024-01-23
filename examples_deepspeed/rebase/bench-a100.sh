@@ -179,6 +179,12 @@ data_options=" \
 megatron_options=" \
     --use-flash-attn-v2 \
     --override-opt_param-scheduler \
+    --no-query-key-layer-scaling \
+    --disable-bias-linear \
+    --normalization rmsnorm \
+    --use-rotary-position-embeddings \
+    --untie-embeddings-and-output-weights \
+    --swiglu \
     --adam-beta1 0.9 \
     --adam-beta2 0.95 \
     --tensor-model-parallel-size ${mp_size} \
@@ -205,17 +211,12 @@ megatron_options=" \
     --save-interval ${save_interval} \
     --weight-decay 0.1 \
     --clip-grad 1.0 \
-    --hysteresis 2 \
     --num-workers ${num_workers} \
     --bf16 \
     --seed ${seed} \
     --load ${checkpoint_path} \
     --save ${checkpoint_path} \
-    --no-async-tensor-model-parallel-allreduce \
     --tensorboard-queue-size 1 \
-    --log-timers-to-tensorboard \
-    --log-batch-size-to-tensorboard \
-    --log-validation-ppl-to-tensorboard \
     --tensorboard-dir ${tensorboard_path}"
 
 if [ "${activation_checkpoint}" = "true" ]; then

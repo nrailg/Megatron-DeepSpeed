@@ -35,7 +35,7 @@ global_batch_size=32
 lr=1.0e-4
 min_lr=1.0e-6
 init_std=0.008
-batch_size=1
+batch_size=2
 
 ###############################################################################
 ### Training duration configs
@@ -110,7 +110,7 @@ eval_interval=100
 num_save=100
 estimated_train_iter=$((${train_tokens} / ${seq_len} / ${global_batch_size}))
 # save_interval=$((${estimated_train_iter} / ${num_save}))
-save_interval=100
+save_interval=1000
 
 ## Activation checkpointing saves GPU memory, but reduces training speed
 activation_checkpoint="false"
@@ -182,6 +182,12 @@ megatron_options=" \
     --no-bias-dropout-fusion \
     --no-gradient-accumulation-fusion \
     --override-opt_param-scheduler \
+    --no-query-key-layer-scaling \
+    --disable-bias-linear \
+    --normalization rmsnorm \
+    --use-rotary-position-embeddings \
+    --untie-embeddings-and-output-weights \
+    --swiglu \
     --adam-beta1 0.9 \
     --adam-beta2 0.95 \
     --tensor-model-parallel-size ${mp_size} \
@@ -208,17 +214,12 @@ megatron_options=" \
     --save-interval ${save_interval} \
     --weight-decay 0.1 \
     --clip-grad 1.0 \
-    --hysteresis 2 \
     --num-workers ${num_workers} \
     --bf16 \
     --seed ${seed} \
     --load ${checkpoint_path} \
     --save ${checkpoint_path} \
-    --no-async-tensor-model-parallel-allreduce \
     --tensorboard-queue-size 1 \
-    --log-timers-to-tensorboard \
-    --log-batch-size-to-tensorboard \
-    --log-validation-ppl-to-tensorboard \
     --tensorboard-dir ${tensorboard_path}"
 
 if [ "${activation_checkpoint}" = "true" ]; then
