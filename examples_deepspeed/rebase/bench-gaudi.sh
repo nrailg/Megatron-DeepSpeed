@@ -82,7 +82,7 @@ pp_size=2
 no_pp="false"
 
 ## ZeRO-based data parallelism, stage=0 will disable ZeRO
-zero_stage=1
+zero_stage=0
 
 ## Total number of GPUs. ds_ssh is from DeepSpeed library.
 #num_gpus=$(($(ds_ssh nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)-2))
@@ -117,7 +117,7 @@ activation_checkpoint="false"
 
 ## Whether or not log optimizer states (norms, max abs values) to tensorboard.
 ## This is not required for training and might save GPU memory when turned off.
-log_optimizer_state="true"
+log_optimizer_state="false"
 ###############################################################################
 ### Output and data configs
 current_time=$(date "+%Y.%m.%d_%H.%M.%S")
@@ -177,7 +177,10 @@ data_options=" \
 ## If CL is used, make sure to set "--split" the same as what you used during
 ## offline data analysis&indexing.
 megatron_options=" \
-    --use-flash-attn-v2 \
+    --no-masked-softmax-fusion \
+    --no-bias-gelu-fusion \
+    --no-bias-dropout-fusion \
+    --no-gradient-accumulation-fusion \
     --override-opt_param-scheduler \
     --adam-beta1 0.9 \
     --adam-beta2 0.95 \
@@ -207,7 +210,7 @@ megatron_options=" \
     --clip-grad 1.0 \
     --hysteresis 2 \
     --num-workers ${num_workers} \
-    --fp16 \
+    --bf16 \
     --seed ${seed} \
     --load ${checkpoint_path} \
     --save ${checkpoint_path} \
@@ -229,7 +232,7 @@ megatron_options="${megatron_options} \
 fi
 
 config_json="ds_config_gbs${global_batch_size}_mbs${batch_size}_log${log_interval}_zero${zero_stage}.json"
-template_json="examples_deepspeed/rebase/ds_config_gpt_TEMPLATE.json"
+template_json="examples_deepspeed/rebase/ds_config_gpt_bf16_TEMPLATE.json"
 sed "s/GBSIZE/${global_batch_size}/" ${template_json} \
     | sed "s/MBSIZE/${batch_size}/" \
     | sed "s/LOG_INTERVAL/${log_interval}/" \
@@ -253,9 +256,8 @@ deepspeed_options="${deepspeed_options} \
     --deepspeed-activation-checkpointing"
 fi
 
-export MASTER_ADDR=30.77.80.49
-export MASTER_PORT=12346
-TORCHRUN_ARGS="--nproc_per_node $num_gpus_pernode --nnodes $num_node --node_rank $1 --master_addr $MASTER_ADDR --master_port $MASTER_PORT"
+export MASTER_ADDR=30.149.248.34
+export MASTER_PORT=60006
 
-torchrun $TORCHRUN_ARGS \
+deepspeed --hostfile hostfile --master_addr $MASTER_ADDR --master_port $MASTER_PORT --num_nodes $num_node --num_gpus $num_gpus_pernode \
     pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options}

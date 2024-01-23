@@ -82,7 +82,7 @@ pp_size=2
 no_pp="false"
 
 ## ZeRO-based data parallelism, stage=0 will disable ZeRO
-zero_stage=1
+zero_stage=0
 
 ## Total number of GPUs. ds_ssh is from DeepSpeed library.
 #num_gpus=$(($(ds_ssh nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)-2))
@@ -117,7 +117,7 @@ activation_checkpoint="false"
 
 ## Whether or not log optimizer states (norms, max abs values) to tensorboard.
 ## This is not required for training and might save GPU memory when turned off.
-log_optimizer_state="true"
+log_optimizer_state="false"
 ###############################################################################
 ### Output and data configs
 current_time=$(date "+%Y.%m.%d_%H.%M.%S")
@@ -125,19 +125,19 @@ host="${HOSTNAME}"
 seed=1234
 num_workers=0
 
-data_path="dataset/BookCorpusDataset_text_document"
-if [ ! -f "dataset/BookCorpusDataset_text_document.bin" ]; then
+data_path="/root/dataset/BookCorpusDataset_text_document"
+if [ ! -f "/root/dataset/BookCorpusDataset_text_document.bin" ]; then
     wget https://the-eye.eu/public/AI/pile_neox/data/BookCorpusDataset_text_document.bin
 fi
-if [ ! -f "dataset/BookCorpusDataset_text_document.idx" ]; then
+if [ ! -f "/root/dataset/BookCorpusDataset_text_document.idx" ]; then
     wget https://the-eye.eu/public/AI/pile_neox/data/BookCorpusDataset_text_document.idx
 fi
 
-vocab_path="dataset/gpt2-vocab.json"
+vocab_path="/root/dataset/gpt2-vocab.json"
 if [ ! -f "$vocab_path" ]; then
     wget https://s3.amazonaws.com/models.huggingface.co/bert/gpt2-vocab.json
 fi
-merge_path="dataset/gpt2-merges.txt"
+merge_path="/root/dataset/gpt2-merges.txt"
 if [ ! -f "$merge_path" ]; then
     wget https://s3.amazonaws.com/models.huggingface.co/bert/gpt2-merges.txt
 fi
@@ -207,7 +207,7 @@ megatron_options=" \
     --clip-grad 1.0 \
     --hysteresis 2 \
     --num-workers ${num_workers} \
-    --fp16 \
+    --bf16 \
     --seed ${seed} \
     --load ${checkpoint_path} \
     --save ${checkpoint_path} \
@@ -229,7 +229,7 @@ megatron_options="${megatron_options} \
 fi
 
 config_json="ds_config_gbs${global_batch_size}_mbs${batch_size}_log${log_interval}_zero${zero_stage}.json"
-template_json="examples_deepspeed/rebase/ds_config_gpt_TEMPLATE.json"
+template_json="examples_deepspeed/rebase/ds_config_gpt_bf16_TEMPLATE.json"
 sed "s/GBSIZE/${global_batch_size}/" ${template_json} \
     | sed "s/MBSIZE/${batch_size}/" \
     | sed "s/LOG_INTERVAL/${log_interval}/" \
